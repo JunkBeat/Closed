@@ -14,7 +14,6 @@
 		p = hex_md5(p);
 		
 		if (l == "a384b6463fc216a5f8ecb6670f86456a" & p == "e00cf25ad42683b3df678c61f42c6bda") {
-			alert("qw");
-			window.location.replace("https://junkbeat.github.io/Closed/u/user.html");
+			location.href = "https://junkbeat.github.io/Closed/u/user.html";
 		}
 	}
