@@ -1,0 +1,61 @@
+﻿// Decompiled with JetBrains decompiler
+// Type: LocationGasstationRoom1Start
+// Assembly: Assembly-CSharp, Version=9.0.0.0, Culture=neutral, PublicKeyToken=null
+// MVID: 0AB8CA89-B4E8-42A6-A741-F039C11ACBC5
+// Assembly location: C:\Users\err00\Desktop\ИСХОДНИКИ desc 4\Материалы\Assembly-CSharp\Оригинальный\Assembly-CSharp.dll
+
+using UnityEngine;
+
+public class LocationGasstationRoom1Start : MonoBehaviour
+{
+  private void Start()
+  {
+    PlayerController.wc.shadow.fadeRateV = 0.004f;
+    PlayerController.wc.shadow.fadeRateH = 0.004f;
+    PlayerController.wc.shadowOffsetY = 0;
+    PlayerController.wc.shadow.skewFactor = 20f;
+    PlayerController.wc.shadow.skewFactor2 = 0.0f;
+    PlayerController.wc.shadow.startAlpha = 0.5f;
+    PlayerController.wc.shadow.scaleFactor = 0.75f;
+    PlayerController.wc.shadow.downwards = true;
+    PlayerController.wc.speed = PlayerController.wc.MAX_SPEED;
+    PlayerController.wc.GetComponent<Animator>().speed = 1f;
+    PlayerController.wc.shadow.source = 100f;
+    PlayerController.ssg.setStepType("normal");
+    GameDataController.gd.setObjective("visited_gasstationRoom1", true);
+    PlayerController.pc.copySettingsToNPCs();
+    JukeboxAmbient.jb.changeAmbient(SoundsManagerController.sm.ambient_wind_1, 0.25f);
+    if (GameDataController.gd.getObjectiveDetail("day_1_threat") == 2)
+    {
+      GameObject.Find("Location").transform.Find("plane00").GetComponent<SpriteRenderer>().enabled = false;
+      GameObject.Find("Location").transform.Find("plane00b").GetComponent<SpriteRenderer>().enabled = false;
+      GameObject.Find("Location").transform.Find("plane01").GetComponent<SpriteRenderer>().enabled = false;
+      GameObject.Find("Location").transform.Find("plane00_spiders").GetComponent<SpriteRenderer>().enabled = true;
+      GameObject.Find("Location").transform.Find("plane00b_spiders").GetComponent<SpriteRenderer>().enabled = true;
+      GameObject.Find("Location").transform.Find("plane01_spiders").GetComponent<SpriteRenderer>().enabled = true;
+    }
+    else
+    {
+      GameObject.Find("Location").transform.Find("plane00").GetComponent<SpriteRenderer>().enabled = true;
+      GameObject.Find("Location").transform.Find("plane00b").GetComponent<SpriteRenderer>().enabled = true;
+      GameObject.Find("Location").transform.Find("plane01").GetComponent<SpriteRenderer>().enabled = true;
+      GameObject.Find("Location").transform.Find("plane00_spiders").GetComponent<SpriteRenderer>().enabled = false;
+      GameObject.Find("Location").transform.Find("plane00b_spiders").GetComponent<SpriteRenderer>().enabled = false;
+      GameObject.Find("Location").transform.Find("plane01_spiders").GetComponent<SpriteRenderer>().enabled = false;
+    }
+    if (GameDataController.gd.getCurrentDay() == 1 && GameDataController.gd.getObjectiveDetail("day_1_threat") == 2 && !GameDataController.gd.getObjective("gasstation_spider_baited"))
+      PlayerController.wc.speed = 0.0f;
+    if (GameDataController.gd.getCurrentDay() == 1 && !GameDataController.gd.getObjective("gasstation_spider_shot") && GameDataController.gd.getObjectiveDetail("day_1_threat") == 2)
+      JukeboxMusic.jb.changeMusic(SoundsManagerController.sm.music_scare_loop, minTime: 1f, maxTime: 3f);
+    else if (GameDataController.gd.getCurrentDay() == 3 && GameDataController.gd.getObjectiveDetail("day_3_threat") == 0 && GameDataController.gd.getObjective("sidereal_base_located") && !GameDataController.gd.getObjective("gasstation_sarge_reason"))
+      JukeboxMusic.jb.changeMusic(SoundsManagerController.sm.music_explore_6a);
+    else if (GameDataController.gd.getObjective("gasstation_sarge_shot"))
+      JukeboxMusic.jb.changeMusic((AudioClip) null);
+    else
+      JukeboxMusic.jb.changeMusic(SoundsManagerController.sm.music_explore_3a);
+  }
+
+  private void Update()
+  {
+  }
+}
