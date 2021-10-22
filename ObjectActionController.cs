@@ -121,7 +121,7 @@ public abstract class ObjectActionController : MonoBehaviour
             flag = false;
           if ((this.objectName == "npc_mourning" || this.objectName == "npc_barry") && !GameDataController.gd.getObjective("npc2_joined") && (this.cursorCont.selectedItemName.IndexOf("rifle") != -1 || this.cursorCont.selectedItemName == "wrench" || this.cursorCont.selectedItemName == "crowbar" || this.cursorCont.selectedItemName == "hammer" || this.cursorCont.selectedItemName == "pipe"))
             flag = false;
-          if (this.actionType == ObjectActionController.Type.Talk && flag)
+          if (this.actionType == ObjectActionController.Type.Talk & flag)
           {
             str1 = GameStrings.getString(GameStrings.gui, "give1");
             str2 = GameStrings.getString(GameStrings.gui, "give2");

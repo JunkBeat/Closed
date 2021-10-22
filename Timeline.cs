@@ -170,4 +170,27 @@ public class Timeline : MonoBehaviour
   }
 
   public void killText() => this.actions[0].textfield.terminate();
+
+  public void skipDialogue()
+  {
+    if (this.actions == null || this.actions.Count <= 0)
+      return;
+    for (int index = 0; index < this.actions.Count; ++index)
+    {
+      if (this.actions[index].function != null)
+      {
+        this.actions[index].text = "";
+        this.actions[index].textfield.keepAlive = false;
+        this.actions[index].textDisplayed = false;
+      }
+      else
+      {
+        this.actions[index].text = "";
+        this.actions[index].textfield.keepAlive = false;
+        this.actions[index].textDisplayed = false;
+        this.actions.RemoveAt(index);
+        --index;
+      }
+    }
+  }
 }

@@ -19,8 +19,8 @@ public class GameDataController : MonoBehaviour
   public static PersistentData persistentData;
   public PersistentData persistentDataView;
   public static string VERSION = "v1.2.1";
-  public static bool STEAM;
-  public static bool GOG = true;
+  public static bool STEAM = true;
+  public static bool GOG;
   public static bool KART;
   public static string AUTOSAVE = "autosave0";
   public static string CONTINUE = "autosave_continue";
@@ -1739,8 +1739,9 @@ public class GameDataController : MonoBehaviour
     if (File.Exists(Application.persistentDataPath + "/" + str))
     {
       BinaryFormatter binaryFormatter = new BinaryFormatter();
-      FileStream fileStream = File.Open(Application.persistentDataPath + "/" + str, FileMode.OpenOrCreate);
-      PersistentData persistentData = (PersistentData) binaryFormatter.Deserialize((Stream) fileStream);
+      FileStream fileStream1 = File.Open(Application.persistentDataPath + "/" + str, FileMode.OpenOrCreate);
+      FileStream fileStream2 = fileStream1;
+      PersistentData persistentData = (PersistentData) binaryFormatter.Deserialize((Stream) fileStream2);
       GameDataController.persistentData.chapter1_locust = persistentData.chapter1_locust;
       GameDataController.persistentData.chapter1_gas = persistentData.chapter1_gas;
       GameDataController.persistentData.chapter1_spiders = persistentData.chapter1_spiders;
@@ -1766,7 +1767,7 @@ public class GameDataController : MonoBehaviour
         for (int index = 0; index < persistentData.achievements.Count; ++index)
           GameDataController.persistentData.achievements.Add(new Objective(persistentData.achievements[index].id, persistentData.achievements[index].state));
       }
-      fileStream.Close();
+      fileStream1.Close();
     }
     else
     {
@@ -1824,43 +1825,45 @@ public class GameDataController : MonoBehaviour
   public void Save(string path)
   {
     BinaryFormatter binaryFormatter = new BinaryFormatter();
-    FileStream fileStream = File.Open(Application.persistentDataPath + "/" + path, FileMode.OpenOrCreate);
+    FileStream fileStream1 = File.Open(Application.persistentDataPath + "/" + path, FileMode.OpenOrCreate);
     MonoBehaviour.print((object) ("SAVING GAME...... " + path + " " + SceneManager.GetActiveScene().name));
-    SaveData saveData = new SaveData();
-    saveData.objectives = GameDataController.gd.objectives;
-    saveData.journals = GameDataController.gd.journals;
-    saveData.visited = GameDataController.gd.visited;
-    saveData.items = GameDataController.gd.items;
-    saveData.gameTime = GameDataController.gd.gameTime;
-    saveData.timeLimit = GameDataController.gd.timeLimit;
-    saveData.gameDay = GameDataController.gd.getCurrentDay();
-    saveData.dateTime = DateTime.Now;
-    saveData.traveledTime = GameDataController.gd.traveledTime;
-    saveData.workedTime = GameDataController.gd.workedTime;
-    saveData.journalEntries = this.journalEntries;
+    SaveData saveData1 = new SaveData();
+    saveData1.objectives = GameDataController.gd.objectives;
+    saveData1.journals = GameDataController.gd.journals;
+    saveData1.visited = GameDataController.gd.visited;
+    saveData1.items = GameDataController.gd.items;
+    saveData1.gameTime = GameDataController.gd.gameTime;
+    saveData1.timeLimit = GameDataController.gd.timeLimit;
+    saveData1.gameDay = GameDataController.gd.getCurrentDay();
+    saveData1.dateTime = DateTime.Now;
+    saveData1.traveledTime = GameDataController.gd.traveledTime;
+    saveData1.workedTime = GameDataController.gd.workedTime;
+    saveData1.journalEntries = this.journalEntries;
     GameDataController.gd.location = SceneManager.GetActiveScene().name;
     if (GameDataController.gd.location != "SaveMenu")
     {
-      saveData.location = GameDataController.gd.location;
-      saveData.usedSpawner = GameDataController.gd.usedSpawner;
+      saveData1.location = GameDataController.gd.location;
+      saveData1.usedSpawner = GameDataController.gd.usedSpawner;
       GameDataController.gd.currentX = (int) PlayerController.wc.currentXY.x;
       GameDataController.gd.currentY = (int) PlayerController.wc.currentXY.y;
     }
     else
     {
-      saveData.location = GameDataController.gd.previousLocation;
-      saveData.usedSpawner = GameDataController.gd.usedSpawner;
+      saveData1.location = GameDataController.gd.previousLocation;
+      saveData1.usedSpawner = GameDataController.gd.usedSpawner;
       GameDataController.gd.currentX = GameDataController.gd.previousX;
       GameDataController.gd.currentY = GameDataController.gd.previousY;
     }
-    saveData.currentX = GameDataController.gd.currentX;
-    saveData.currentY = GameDataController.gd.currentY;
-    saveData.previousX = GameDataController.gd.previousX;
-    saveData.previousY = GameDataController.gd.previousY;
-    saveData.previousLocation = GameDataController.gd.previousLocation;
-    saveData.finishingLocation = GameDataController.gd.finishingLocation;
-    binaryFormatter.Serialize((Stream) fileStream, (object) saveData);
-    fileStream.Close();
+    saveData1.currentX = GameDataController.gd.currentX;
+    saveData1.currentY = GameDataController.gd.currentY;
+    saveData1.previousX = GameDataController.gd.previousX;
+    saveData1.previousY = GameDataController.gd.previousY;
+    saveData1.previousLocation = GameDataController.gd.previousLocation;
+    saveData1.finishingLocation = GameDataController.gd.finishingLocation;
+    FileStream fileStream2 = fileStream1;
+    SaveData saveData2 = saveData1;
+    binaryFormatter.Serialize((Stream) fileStream2, (object) saveData2);
+    fileStream1.Close();
     MonoBehaviour.print((object) "FILE SAVED");
   }
 
@@ -1890,83 +1893,85 @@ public class GameDataController : MonoBehaviour
     if (!File.Exists(Application.persistentDataPath + "/" + path))
       return (SaveData) null;
     BinaryFormatter binaryFormatter = new BinaryFormatter();
-    FileStream fileStream = File.Open(Application.persistentDataPath + "/" + path, FileMode.Open);
-    SaveData saveData = (SaveData) binaryFormatter.Deserialize((Stream) fileStream);
-    fileStream.Close();
+    FileStream fileStream1 = File.Open(Application.persistentDataPath + "/" + path, FileMode.Open);
+    FileStream fileStream2 = fileStream1;
+    SaveData saveData = (SaveData) binaryFormatter.Deserialize((Stream) fileStream2);
+    fileStream1.Close();
     return saveData;
   }
 
   public bool Load(string path)
   {
     MonoBehaviour.print((object) ("Loading file " + Application.persistentDataPath + "/" + path));
-    if (File.Exists(Application.persistentDataPath + "/" + path))
+    if (!File.Exists(Application.persistentDataPath + "/" + path))
     {
-      if ((UnityEngine.Object) InventoryController.ic != (UnityEngine.Object) null && this.items != null)
-        InventoryController.ic.clearInventory();
-      BinaryFormatter binaryFormatter = new BinaryFormatter();
-      FileStream fileStream = File.Open(Application.persistentDataPath + "/" + path, FileMode.Open);
-      SaveData saveData = (SaveData) binaryFormatter.Deserialize((Stream) fileStream);
-      GameDataController.gd.currentX = saveData.currentX;
-      GameDataController.gd.currentY = saveData.currentY;
-      GameDataController.gd.previousX = saveData.currentX;
-      GameDataController.gd.previousY = saveData.currentY;
-      GameDataController.gd.location = saveData.location;
-      GameDataController.gd.usedSpawner = saveData.usedSpawner;
-      GameDataController.gd.journalEntries = saveData.journalEntries;
-      PlayerController.pc.spawnName = "previous";
-      for (int index = 0; index < saveData.visited.Count; ++index)
-      {
-        GameDataController.gd.setObjective(saveData.visited[index].id, saveData.visited[index].state);
-        GameDataController.gd.setObjectiveDetail(saveData.visited[index].id, saveData.visited[index].detail);
-      }
-      for (int index = 0; index < saveData.objectives.Count; ++index)
-      {
-        GameDataController.gd.setObjective(saveData.objectives[index].id, saveData.objectives[index].state);
-        GameDataController.gd.setObjectiveDetail(saveData.objectives[index].id, saveData.objectives[index].detail);
-      }
-      for (int index = 0; index < saveData.journals.Count; ++index)
-      {
-        GameDataController.gd.setJournal(saveData.journals[index].id, saveData.journals[index].state);
-        GameDataController.gd.setJournalDetail(saveData.journals[index].id, saveData.journals[index].detail);
-      }
-      for (int index = 0; index < saveData.items.Count; ++index)
-      {
-        GameDataController.gd.getItemData(saveData.items[index].id).droppedLocation = saveData.items[index].droppedLocation;
-        GameDataController.gd.getItemData(saveData.items[index].id).locX = saveData.items[index].locX;
-        GameDataController.gd.getItemData(saveData.items[index].id).locY = saveData.items[index].locY;
-      }
-      GameDataController.gd.gameTime = saveData.gameTime;
-      GameDataController.gd.timeLimit = saveData.timeLimit;
-      GameDataController.gd.traveledTime = saveData.traveledTime;
-      GameDataController.gd.workedTime = saveData.workedTime;
-      GameDataController.gd.finishingLocation = saveData.finishingLocation;
-      ItemsManager.im.initItems();
-      if (GameDataController.gd.currentX != 0 && GameDataController.gd.currentY != 0)
-      {
-        PlayerController.wc.currentXY.x = (float) GameDataController.gd.currentX;
-        PlayerController.wc.currentXY.y = (float) GameDataController.gd.currentY;
-      }
-      MonoBehaviour.print((object) ("SAVED SCENE : " + GameDataController.gd.location));
-      fileStream.Close();
-      GameDataController.gd.previousLocation = string.Empty;
-      MonoBehaviour.print((object) "FILE LOADED");
-      ItemsManager.im.initItems();
-      InventoryController.ic.maxCapacity = 30;
-      if (GameDataController.gd.getObjectiveDetail("day1_complete") == 1)
-        InventoryController.ic.maxCapacity += 5;
-      if (GameDataController.gd.getObjectiveDetail("day2_complete") == 1)
-        InventoryController.ic.maxCapacity += 5;
-      if (GameDataController.gd.getObjectiveDetail("day3_complete") == 1)
-        InventoryController.ic.maxCapacity += 5;
-      JournalTexts.pickTexts(GameDataController.gd.getCurrentDay());
-      if (GameDataController.gd.location == null || GameDataController.gd.location.Length <= 0 || SceneManager.GetActiveScene().name.Equals(GameDataController.gd.location))
-        return false;
-      MonoBehaviour.print((object) ("LOADING SCENE : " + GameDataController.gd.location));
-      CurtainController.cc.loadScene(GameDataController.gd.location);
-      return true;
+      MonoBehaviour.print((object) "FILE NOT FOUND - NO FILE LOADED");
+      return false;
     }
-    MonoBehaviour.print((object) "FILE NOT FOUND - NO FILE LOADED");
-    return false;
+    if ((UnityEngine.Object) InventoryController.ic != (UnityEngine.Object) null && this.items != null)
+      InventoryController.ic.clearInventory();
+    BinaryFormatter binaryFormatter = new BinaryFormatter();
+    FileStream fileStream1 = File.Open(Application.persistentDataPath + "/" + path, FileMode.Open);
+    FileStream fileStream2 = fileStream1;
+    SaveData saveData = (SaveData) binaryFormatter.Deserialize((Stream) fileStream2);
+    GameDataController.gd.currentX = saveData.currentX;
+    GameDataController.gd.currentY = saveData.currentY;
+    GameDataController.gd.previousX = saveData.currentX;
+    GameDataController.gd.previousY = saveData.currentY;
+    GameDataController.gd.location = saveData.location;
+    GameDataController.gd.usedSpawner = saveData.usedSpawner;
+    GameDataController.gd.journalEntries = saveData.journalEntries;
+    PlayerController.pc.spawnName = "previous";
+    for (int index = 0; index < saveData.visited.Count; ++index)
+    {
+      GameDataController.gd.setObjective(saveData.visited[index].id, saveData.visited[index].state);
+      GameDataController.gd.setObjectiveDetail(saveData.visited[index].id, saveData.visited[index].detail);
+    }
+    for (int index = 0; index < saveData.objectives.Count; ++index)
+    {
+      GameDataController.gd.setObjective(saveData.objectives[index].id, saveData.objectives[index].state);
+      GameDataController.gd.setObjectiveDetail(saveData.objectives[index].id, saveData.objectives[index].detail);
+    }
+    for (int index = 0; index < saveData.journals.Count; ++index)
+    {
+      GameDataController.gd.setJournal(saveData.journals[index].id, saveData.journals[index].state);
+      GameDataController.gd.setJournalDetail(saveData.journals[index].id, saveData.journals[index].detail);
+    }
+    for (int index = 0; index < saveData.items.Count; ++index)
+    {
+      GameDataController.gd.getItemData(saveData.items[index].id).droppedLocation = saveData.items[index].droppedLocation;
+      GameDataController.gd.getItemData(saveData.items[index].id).locX = saveData.items[index].locX;
+      GameDataController.gd.getItemData(saveData.items[index].id).locY = saveData.items[index].locY;
+    }
+    GameDataController.gd.gameTime = saveData.gameTime;
+    GameDataController.gd.timeLimit = saveData.timeLimit;
+    GameDataController.gd.traveledTime = saveData.traveledTime;
+    GameDataController.gd.workedTime = saveData.workedTime;
+    GameDataController.gd.finishingLocation = saveData.finishingLocation;
+    ItemsManager.im.initItems();
+    if (GameDataController.gd.currentX != 0 && GameDataController.gd.currentY != 0)
+    {
+      PlayerController.wc.currentXY.x = (float) GameDataController.gd.currentX;
+      PlayerController.wc.currentXY.y = (float) GameDataController.gd.currentY;
+    }
+    MonoBehaviour.print((object) ("SAVED SCENE : " + GameDataController.gd.location));
+    fileStream1.Close();
+    GameDataController.gd.previousLocation = string.Empty;
+    MonoBehaviour.print((object) "FILE LOADED");
+    ItemsManager.im.initItems();
+    InventoryController.ic.maxCapacity = 30;
+    if (GameDataController.gd.getObjectiveDetail("day1_complete") == 1)
+      InventoryController.ic.maxCapacity += 5;
+    if (GameDataController.gd.getObjectiveDetail("day2_complete") == 1)
+      InventoryController.ic.maxCapacity += 5;
+    if (GameDataController.gd.getObjectiveDetail("day3_complete") == 1)
+      InventoryController.ic.maxCapacity += 5;
+    JournalTexts.pickTexts(GameDataController.gd.getCurrentDay());
+    if (GameDataController.gd.location == null || GameDataController.gd.location.Length <= 0 || SceneManager.GetActiveScene().name.Equals(GameDataController.gd.location))
+      return false;
+    MonoBehaviour.print((object) ("LOADING SCENE : " + GameDataController.gd.location));
+    CurtainController.cc.loadScene(GameDataController.gd.location);
+    return true;
   }
 
   public int getCurrentDay()

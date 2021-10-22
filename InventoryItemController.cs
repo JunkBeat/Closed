@@ -27,6 +27,7 @@ public class InventoryItemController : MonoBehaviour
   private Item itemRef;
   private float hover;
   private float displayHover;
+  private string item;
 
   private void Start()
   {
@@ -69,9 +70,71 @@ public class InventoryItemController : MonoBehaviour
       this.displayHover -= num * Time.deltaTime;
     if ((double) this.displayHover < 0.0)
       this.displayHover = 0.0f;
-    if ((double) this.displayHover <= 1.0)
+    if ((double) this.displayHover > 1.0)
+      this.displayHover = 1f;
+    if (((double) Input.mouseScrollDelta.y > 0.0 | (double) Input.mouseScrollDelta.y < 0.0) & GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive & this.item.Length > 0)
+    {
+      if (CursorController.cc.selectedItemName != "")
+        return;
+      string str = this.item;
+      if (InventoryController.ic.trunk.activeSelf)
+      {
+        if (ItemsManager.im.getItem(str).dataRef.droppedLocation == "inventory")
+        {
+          if ((double) Input.mouseScrollDelta.y > 0.0)
+            InventoryController.ic.putItemInTrunk(str);
+          else if ((double) Input.mouseScrollDelta.y < 0.0)
+            InventoryController.ic.putItemInChest(str);
+          this.MakeCellInactive();
+        }
+        else if (ItemsManager.im.getItem(str).dataRef.droppedLocation == "trunk")
+        {
+          if ((double) Input.mouseScrollDelta.y > 0.0)
+            this.putItemInInventory(str);
+          else if ((double) Input.mouseScrollDelta.y < 0.0)
+          {
+            InventoryController.ic.putItemInChest(str);
+            this.MakeCellInactive();
+          }
+        }
+      }
+      else if (InventoryController.ic.chest.activeSelf)
+      {
+        if (ItemsManager.im.getItem(str).dataRef.droppedLocation == "inventory")
+        {
+          if ((double) Input.mouseScrollDelta.y > 0.0)
+            InventoryController.ic.putItemInChest(str);
+          else if ((double) Input.mouseScrollDelta.y < 0.0)
+            InventoryController.ic.putItemInTrunk(str);
+          this.MakeCellInactive();
+        }
+        else if (ItemsManager.im.getItem(str).dataRef.droppedLocation == "chest")
+        {
+          if ((double) Input.mouseScrollDelta.y > 0.0)
+            this.putItemInInventory(str);
+          else if ((double) Input.mouseScrollDelta.y < 0.0)
+          {
+            InventoryController.ic.putItemInTrunk(str);
+            this.MakeCellInactive();
+          }
+        }
+      }
+      else
+      {
+        if ((double) Input.mouseScrollDelta.y > 0.0)
+          InventoryController.ic.putItemInChest(str);
+        else if ((double) Input.mouseScrollDelta.y < 0.0)
+          InventoryController.ic.putItemInTrunk(str);
+        this.MakeCellInactive();
+      }
+    }
+    if (!(Input.GetKeyDown(KeyCode.Space) | Input.GetKeyDown(KeyCode.Semicolon)) || !(this.cursorController.selectedItemName.Equals(string.Empty) & this.item.Length > 0 & GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive))
       return;
-    this.displayHover = 1f;
+    string name = this.item;
+    if (!(ItemsManager.im.getItem(name).dataRef.droppedLocation == "inventory") && !(ItemsManager.im.getItem(name).dataRef.droppedLocation == "chest") && !(ItemsManager.im.getItem(name).dataRef.droppedLocation == "trunk"))
+      return;
+    InventoryController.ic.dropItemExtended(ItemsManager.im.getItem(name), ItemsManager.im.getItem(name).dataRef.droppedLocation);
+    this.MakeCellInactive();
   }
 
   private void OnEnable()
@@ -88,6 +151,7 @@ public class InventoryItemController : MonoBehaviour
     string text;
     if (this.cursorController.selectedItemName.Equals(string.Empty) || this.itemName.Equals(this.cursorController.selectedItemName))
     {
+      this.item = this.itemName;
       text = GameStrings.getPrefixedShort(GameStrings.items, this.itemName, true) + " (" + (object) this.weight + " " + GameStrings.getString(GameStrings.gui, "kg") + ")";
       if (this.itemRef != null && (Object) this.itemRef.examineSprite != (Object) null)
         text = text + " ^[" + GameStrings.getString(GameStrings.gui, "right_click_to_view") + "]";
@@ -104,6 +168,7 @@ public class InventoryItemController : MonoBehaviour
     this.cursorController.showCursor(CursorController.PixelCursor.NORMAL);
     this.textfield.keepAlive = false;
     this.hover = 0.0f;
+    this.item = "";
   }
 
   public void loadItem(Item item)
@@ -248,5 +313,24 @@ public class InventoryItemController : MonoBehaviour
   {
     this.hover = 0.0f;
     this.displayHover = 0.0f;
+  }
+
+  private void MakeCellInactive()
+  {
+    this.znik();
+    GameObject.FindGameObjectWithTag("Cursor").GetComponent<CursorController>().showCursor(CursorController.PixelCursor.NORMAL);
+    GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive = false;
+  }
+
+  private void putItemInInventory(string text)
+  {
+    if ((Object) InventoryController.ic.findFreeSpot() != (Object) null & (double) InventoryController.ic.getCurrentWeight() + (double) this.itemRef.weight < (double) InventoryController.ic.maxCapacity)
+    {
+      InventoryController.ic.removeItem(this.itemName);
+      InventoryController.ic.pickUpItem(ItemsManager.im.getItem(text));
+      this.MakeCellInactive();
+    }
+    else
+      PlayerController.pc.textField.viewText("Sorry but the backpack is either full or too heavy.", true);
   }
 }

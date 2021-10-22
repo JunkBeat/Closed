@@ -182,20 +182,20 @@ public class LocationManager : MonoBehaviour
   {
     if (this.showInventory)
     {
-      if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.I))
+      if (Input.GetKeyDown(KeyCode.J))
       {
         MonoBehaviour.print((object) "SPACJA ");
         if (InventoryButtonController.ibc.gameObject.GetComponent<BoxCollider2D>().enabled)
           InventoryButtonController.ibc.fakeMouseClick(true);
       }
-      if (Input.GetKeyDown(KeyCode.J) && (UnityEngine.Object) GameObject.Find("journal") != (UnityEngine.Object) null && GameDataController.gd.getObjective("tent_distance_checked"))
+      if ((Input.GetKeyDown(KeyCode.I) || Input.GetKeyDown(KeyCode.RightControl)) && (UnityEngine.Object) GameObject.Find("journal") != (UnityEngine.Object) null && GameDataController.gd.getObjective("tent_distance_checked"))
         GameObject.Find("journal").GetComponent<JournalButtonController>().fakeClick();
     }
     if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
       this.highlightItems(true);
     else if (this.itemsHighlighted)
       this.highlightItems(false);
-    if ((UnityEngine.Object) this.esc != (UnityEngine.Object) null && Input.GetKeyDown(KeyCode.Escape) && !PlayerController.wc.busy)
+    if ((UnityEngine.Object) this.esc != (UnityEngine.Object) null && (Input.GetKeyDown(KeyCode.I) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.RightControl)) && !PlayerController.wc.busy)
     {
       this.esc.fakeClick();
       this.esc = (ObjectActionController) null;
@@ -212,10 +212,18 @@ public class LocationManager : MonoBehaviour
     }
     if ((UnityEngine.Object) this.MainCamera == (UnityEngine.Object) null)
       this.MainCamera = GameObject.Find("Main Camera");
-    if ((double) this.needShake > 0.0)
+    if ((double) this.needShake <= 0.0)
+    {
+      this.MainCamera.transform.position = new Vector3(0.0f, 0.0f, -20f);
+    }
+    else
     {
       this.needShake -= Time.deltaTime;
-      if ((double) this.aaa <= 0.0)
+      if ((double) this.aaa > 0.0)
+      {
+        this.aaa -= Time.deltaTime;
+      }
+      else
       {
         this.aaa = 0.03f;
         if ((UnityEngine.Object) this.MainCamera == (UnityEngine.Object) null)
@@ -230,11 +238,7 @@ public class LocationManager : MonoBehaviour
           TextFieldController.cameraShiftY = this.cameraMoved.y * 1f;
         }
       }
-      else
-        this.aaa -= Time.deltaTime;
     }
-    else
-      this.MainCamera.transform.position = new Vector3(0.0f, 0.0f, -20f);
   }
 
   public void highlightItems(bool show)

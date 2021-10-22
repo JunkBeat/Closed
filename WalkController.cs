@@ -41,6 +41,9 @@ public class WalkController : MonoBehaviour
   public Animator animator;
   private GameObject tlo;
   public bool suit;
+  private bool teleporting;
+  public bool isSuitCheatActive;
+  private bool teleportingBackup;
 
   public Vector2 getFinalTarget() => this.path != null && this.path.Count > 0 ? this.path[this.path.Count - 1] : new Vector2();
 
@@ -270,6 +273,130 @@ public class WalkController : MonoBehaviour
 
   private void Update()
   {
+    if (this.teleporting & (GameDataController.gd.location == "LocationDream2" | GameDataController.gd.location == "Dream3" | GameDataController.gd.location == "LocationDream4"))
+    {
+      this.teleportingBackup = true;
+      this.teleporting = false;
+    }
+    else if (this.teleportingBackup & GameDataController.gd.location != "LocationDream2" & GameDataController.gd.location != "Dream3" & GameDataController.gd.location != "LocationDream4")
+    {
+      this.teleportingBackup = false;
+      this.teleporting = true;
+    }
+    if (GameDataController.gd.getCurrentDay() == 1 & !GameDataController.gd.getObjective("tent_backpack_taken") & this.teleporting)
+      this.teleporting = false;
+    if (Input.GetKeyDown(KeyCode.Q))
+      QuestionController.qc.showSimpleQuestion("Choose a skin for David.", yesClick: new Button.Delegate(this.SuitCheatNormal), noClick: new Button.Delegate(this.SuitCheatCosmic), customYesLabel: "Normal", customNoLabel: "Cosmic");
+    if (Input.GetKeyDown(KeyCode.Alpha0))
+    {
+      if (GameDataController.gd.getCurrentDay() != 1 || GameDataController.gd.getCurrentDay() == 1 & GameDataController.gd.getObjective("base_discovered"))
+      {
+        if (this.CheckTeleportAvailability())
+        {
+          GameDataController.gd.setObjective("car_travel", true);
+          PlayerController.pc.aS.PlayOneShot(SoundsManagerController.sm.car_open);
+          PlayerController.pc.setBusy(true);
+          PlayerController.pc.spawnName = "InfoExit";
+          CurtainController.cc.fadeOut("LocationMap", WalkController.Direction.E, sound: SoundsManagerController.sm.car_start);
+        }
+        else
+          PlayerController.pc.textField.viewText("This cheat is currently unavailable for you.", true);
+      }
+      else
+        PlayerController.pc.textField.viewText("First you need to go through training and enter the house.", true);
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha9))
+    {
+      if (GameDataController.gd.getCurrentDay() != 1 || GameDataController.gd.getCurrentDay() == 1 & GameDataController.gd.getObjective("base_discovered"))
+      {
+        if (this.CheckTeleportAvailability())
+        {
+          CurtainController.cc.loadScene("Location1");
+          PlayerController.wc.currentXY.x = 190f;
+          PlayerController.wc.currentXY.y = 26f;
+        }
+        else
+          PlayerController.pc.textField.viewText("This cheat is currently unavailable for you.", true);
+      }
+      else
+        PlayerController.pc.textField.viewText("First you need to go through training and enter the house.", true);
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha8))
+    {
+      if (GameDataController.gd.getObjective("npc1_alive"))
+        QuestionController.qc.showSimpleQuestion("1/3^What do you want to do with Cate? ^^*In story scenes, the character you killed can appear only for the duration of the dialogue.", yesClick: new Button.Delegate(this.killOrResurrectCate), noClick: new Button.Delegate(this.nextBarry), customYesLabel: "Kill", customNoLabel: "To do nothing");
+      else
+        QuestionController.qc.showSimpleQuestion("1/3^What do you want to do with Cate?", yesClick: new Button.Delegate(this.killOrResurrectCate), noClick: new Button.Delegate(this.nextBarry), customYesLabel: "Resurrect", customNoLabel: "To do nothing");
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha7))
+      QuestionController.qc.showSimpleQuestion("Are you sure you want to skip the current day? ^^Keep in mind that thanks to the cheat, you will supposedly go through this day well, that is, you will not get the achievement in the game store. If you are playing this scenario for the first time or have not yet reached the ending (any), I strongly advise you not to use this cheat, otherwise you will see a lot of spoilers. ^^Continue?", yesClick: new Button.Delegate(this.skipDay));
+    if (Input.GetKeyDown(KeyCode.Alpha6))
+    {
+      if (GameDataController.gd.getCurrentDay() == 3)
+      {
+        GameDataController.gd.setObjective("sidereal_exit_unlocked", true);
+        GameDataController.gd.setObjective("sidereal_elevator_f1_hosed", true);
+        GameDataController.gd.setObjective("sidereal_elevator_f1_open", true);
+        GameDataController.gd.setObjectiveDetail("sidereal_elevator_f1_hosed", 1);
+        QuestionController.qc.showSimpleQuestion("The first floor entrance to the Sidereal Plexus office is now accessible! ^^Would you like to turn on the lights in the building with one click? Sorry, I can't add a third button here that says NO :( ^^P.S. For the changes to take effect, you need to re-enter the room where you turned on the light using a cheat.", yesClick: new Button.Delegate(this.onTheLowerFloor), noClick: new Button.Delegate(this.onTheUpperFloor), customYesLabel: "Yes, on the lower floor", customNoLabel: "Yes, on the upper floor");
+      }
+      else
+        PlayerController.pc.textField.viewText("This cheat will be available on the third day.", true);
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha5))
+    {
+      if (GameDataController.persistentData.custom_unlocked)
+      {
+        GameDataController.persistentData.custom_unlocked = false;
+        GameDataController.gd.PersistentSave();
+        PlayerController.pc.textField.viewText("Custom game mode deactivated.", true);
+      }
+      else
+      {
+        GameDataController.persistentData.custom_unlocked = true;
+        GameDataController.gd.PersistentSave();
+        PlayerController.pc.textField.viewText("Custom game mode activated. ^(See in the Main Menu)", true);
+      }
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha4))
+    {
+      if (GameDataController.gd.getCurrentDay() == 1 & !GameDataController.gd.getObjective("tent_backpack_taken"))
+        PlayerController.pc.textField.viewText("First you need to pick up a backpack.", true);
+      else if (!this.teleporting & GameDataController.gd.location != "LocationDream2" & GameDataController.gd.location != "Dream3" & GameDataController.gd.location != "LocationDream4")
+      {
+        this.teleporting = true;
+        PlayerController.pc.textField.viewText("Maximum Walk Speed activated.", true);
+      }
+      else if (this.teleporting & GameDataController.gd.location != "LocationDream2" & GameDataController.gd.location != "Dream3" & GameDataController.gd.location != "LocationDream4")
+      {
+        this.teleporting = false;
+        PlayerController.pc.textField.viewText("Maximum Walk Speed deactivated.", true);
+      }
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha3))
+    {
+      if (InventoryController.ic.maxCapacity < 500)
+      {
+        InventoryController.ic.maxCapacity += 500;
+        PlayerController.pc.textField.viewText("<+500 kg to backpack capacity> activated.", true);
+      }
+      else
+      {
+        InventoryController.ic.maxCapacity -= 500;
+        PlayerController.pc.textField.viewText("<+500 kg to backpack capacity> deactivated.", true);
+      }
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha2))
+    {
+      GameDataController.gd.setObjective("barn_car_refueled", true);
+      GameDataController.gd.setObjectiveDetail("barn_car_refueled", GameDataController.MAX_FUEL);
+      PlayerController.pc.textField.viewText("The car is fueled.", true);
+    }
+    if (Input.GetKeyDown(KeyCode.Alpha1))
+    {
+      GameDataController.gd.gameTime = 240;
+      PlayerController.pc.textField.viewText("The time has been rewound.", true);
+    }
     this.dustPart.started = false;
     float num1 = Time.deltaTime;
     if ((double) num1 > 0.0299999993294477)
@@ -297,6 +424,11 @@ public class WalkController : MonoBehaviour
     float num2 = 1f / 1000f;
     if ((double) Mathf.Abs(this.currentXY.x - this.targetXY.x) > (double) this.speed * (double) num1 * (double) num2 * (double) this.speedMultip || (double) Mathf.Abs(this.currentXY.y - this.targetXY.y) > (double) this.speed * (double) num1 * (double) num2 * (double) this.speedMultip)
     {
+      if (this.teleporting)
+      {
+        this.currentXY.x = this.targetXY.x;
+        this.currentXY.y = this.targetXY.y;
+      }
       if ((double) this.currentXY.x - (double) this.speed * (double) num1 * (double) num2 * (double) this.speedMultip >= (double) this.targetXY.x)
         this.currentSpeed.x = -this.speed * this.speedMultip;
       if ((double) this.currentXY.x + (double) this.speed * (double) num1 * (double) num2 * (double) this.speedMultip <= (double) this.targetXY.x)
@@ -322,7 +454,7 @@ public class WalkController : MonoBehaviour
       this.targetXY.y = this.currentXY.y;
     }
     if ((double) this.currentSpeed.x == 0.0 && (double) this.currentSpeed.y == 0.0)
-      PlayerController.wc.speedMultip = 1f;
+      this.speedMultip = 1f;
     if (this.autoAction != null || !this.busy || this.letOneMoreAnimationBeforeBusy > 0 && this.currentAnimClip.IndexOf("stand") != -1)
     {
       string str1 = "stand_s";
@@ -371,11 +503,13 @@ public class WalkController : MonoBehaviour
         this.walkedBefore = true;
         if ((double) this.speed != (double) this.MAX_SPEED)
           this.speedMultip = 1f;
-        if ((double) this.speedMultip > 1.0 && (double) this.speed == (double) this.MAX_SPEED)
+        if (((!this.isSuitCheatActive ? 1 : 0) & ((double) this.speedMultip <= 1.0 ? 0 : ((double) this.speed == (double) this.MAX_SPEED ? 1 : 0))) != 0)
         {
           str3 = "run_";
           this.dustPart.started = true;
         }
+        else if (this.isSuitCheatActive)
+          this.dustPart.started = true;
       }
       else if (((double) this.currentSpeed.x != 0.0 || (double) this.currentSpeed.y != 0.0) && !this.waitOneFrameBeforeWalking)
       {
@@ -562,7 +696,7 @@ public class WalkController : MonoBehaviour
     this.currentSpeed.y = 0.0f;
     this.currentXY.y = Mathf.Floor(this.currentXY.y);
     this.targetXY.y = this.currentXY.y;
-    if (forceStandAnimation || (this.currentAnimClip.IndexOf("walk_") != -1 || this.currentAnimClip.IndexOf("run_") != -1) && playStandAnimation)
+    if (forceStandAnimation || ((this.currentAnimClip.IndexOf("walk_") != -1 ? 1 : (this.currentAnimClip.IndexOf("run_") != -1 ? 1 : 0)) & (playStandAnimation ? 1 : 0)) != 0)
       this.forceAnimation("stand_", useCurrentDir: true, makeBusy: false);
     this.path = new List<Vector2>();
   }
@@ -597,6 +731,197 @@ public class WalkController : MonoBehaviour
         return;
       this.gameObject.GetComponent<Animator>().Play("suit_stand_se");
     }
+  }
+
+  public void onTheLowerFloor()
+  {
+    GameDataController.gd.setObjectiveDetail("sidereal_electric_pin_A", 15);
+    GameDataController.gd.setObjectiveDetail("sidereal_electric_pin_B", 40);
+  }
+
+  public void onTheUpperFloor()
+  {
+    GameDataController.gd.setObjectiveDetail("sidereal_electric_pin_A", 50);
+    GameDataController.gd.setObjectiveDetail("sidereal_electric_pin_B", 10);
+  }
+
+  public void skipDay()
+  {
+    if (GameDataController.gd.getCurrentDay() != 1 || GameDataController.gd.getCurrentDay() == 1 & GameDataController.gd.getObjective("base_discovered"))
+    {
+      string[] locations1 = new string[3]
+      {
+        "map_bridge_revealed",
+        "map_cars_revealed",
+        "map_gasstation_revealed"
+      };
+      string[] locations2 = new string[3]
+      {
+        "map_restaurant_revealed",
+        "map_houseb_revealed",
+        "map_rv_revealed"
+      };
+      string[] locations3 = new string[4]
+      {
+        "map_hunters_revealed",
+        "map_sidereal_revealed",
+        "map_construction_revealed",
+        "map_outpost_revealed"
+      };
+      if (GameDataController.gd.getCurrentDay() == 1)
+        this.addLocationsOnTheMap(locations1);
+      else if (GameDataController.gd.getCurrentDay() == 2)
+      {
+        this.addLocationsOnTheMap(locations1);
+        this.addLocationsOnTheMap(locations2);
+      }
+      else if (GameDataController.gd.getCurrentDay() == 3)
+      {
+        this.addLocationsOnTheMap(locations1);
+        this.addLocationsOnTheMap(locations2);
+        this.addLocationsOnTheMap(locations3);
+      }
+      new ResultsController()
+      {
+        danger = 0,
+        surviavbleDanger = 0,
+        winQuality = 2
+      }.liveOrDie(string.Empty);
+    }
+    else
+    {
+      if (!(GameDataController.gd.getCurrentDay() == 1 & !GameDataController.gd.getObjective("base_discovered")))
+        return;
+      PlayerController.pc.textField.viewText("First you need to go through training and enter the house.", true);
+    }
+  }
+
+  private void addLocationsOnTheMap(string[] locations)
+  {
+    foreach (string location in locations)
+    {
+      GameDataController.gd.setObjective(location, true);
+      GameDataController.gd.setObjectiveDetail(location, TravelAgency.LOCATION_STATUS_REACHABLE);
+    }
+  }
+
+  public void killOrResurrectCate()
+  {
+    if (GameDataController.gd.getObjective("npc1_alive"))
+    {
+      GameDataController.gd.setObjective("npc1_alive", false);
+      GameDataController.gd.setObjectiveDetail("npc1_alive", 1);
+    }
+    else
+    {
+      GameDataController.gd.setObjective("npc1_alive", true);
+      GameDataController.gd.setObjectiveDetail("npc1_alive", 0);
+    }
+    if (GameDataController.gd.getObjective("npc2_alive"))
+      QuestionController.qc.showSimpleQuestion("2/3^What do you want to do with Barry? ^^*In story scenes, the character you killed can appear only for the duration of the dialogue.", yesClick: new Button.Delegate(this.killOrResurrectBarry), noClick: new Button.Delegate(this.nextCody), customYesLabel: "Kill", customNoLabel: "To do nothing");
+    else
+      QuestionController.qc.showSimpleQuestion("2/3^What do you want to do with Barry?", yesClick: new Button.Delegate(this.killOrResurrectBarry), noClick: new Button.Delegate(this.nextCody), customYesLabel: "Resurrect", customNoLabel: "To do nothing");
+  }
+
+  public void killOrResurrectBarry()
+  {
+    if (GameDataController.gd.getObjective("npc2_alive"))
+    {
+      GameDataController.gd.setObjective("npc2_alive", false);
+      GameDataController.gd.setObjectiveDetail("npc2_alive", 1);
+    }
+    else
+    {
+      GameDataController.gd.setObjective("npc2_alive", true);
+      GameDataController.gd.setObjectiveDetail("npc2_alive", 0);
+    }
+    if (GameDataController.gd.getObjective("npc3_alive"))
+      QuestionController.qc.showSimpleQuestion("3/3^What do you want to do with Cody? ^^*In story scenes, the character you killed can appear only for the duration of the dialogue.", yesClick: new Button.Delegate(this.killOrResurrectCody), customYesLabel: "Kill", customNoLabel: "To do nothing");
+    else
+      QuestionController.qc.showSimpleQuestion("3/3^What do you want to do with Cody?", yesClick: new Button.Delegate(this.killOrResurrectCody), customYesLabel: "Resurrect", customNoLabel: "To do nothing");
+  }
+
+  public void killOrResurrectCody()
+  {
+    if (GameDataController.gd.getObjective("npc3_alive"))
+    {
+      GameDataController.gd.setObjective("npc3_alive", false);
+      GameDataController.gd.setObjectiveDetail("npc3_alive", 1);
+    }
+    else
+    {
+      GameDataController.gd.setObjective("npc3_alive", true);
+      GameDataController.gd.setObjectiveDetail("npc3_alive", 0);
+    }
+  }
+
+  public void nextBarry()
+  {
+    if (GameDataController.gd.getObjective("npc2_alive"))
+      QuestionController.qc.showSimpleQuestion("2/3^What do you want to do with Barry? ^^*In story scenes, the character you killed can appear only for the duration of the dialogue.", yesClick: new Button.Delegate(this.killOrResurrectBarry), noClick: new Button.Delegate(this.nextCody), customYesLabel: "Kill", customNoLabel: "To do nothing");
+    else
+      QuestionController.qc.showSimpleQuestion("2/3^What do you want to do with Barry?", yesClick: new Button.Delegate(this.killOrResurrectBarry), noClick: new Button.Delegate(this.nextCody), customYesLabel: "Resurrect", customNoLabel: "To do nothing");
+  }
+
+  public void nextCody()
+  {
+    if (GameDataController.gd.getObjective("npc3_alive"))
+      QuestionController.qc.showSimpleQuestion("3/3^What do you want to do with Cody? ^^*In story scenes, the character you killed can appear only for the duration of the dialogue.", yesClick: new Button.Delegate(this.killOrResurrectCody), customYesLabel: "Kill", customNoLabel: "To do nothing");
+    else
+      QuestionController.qc.showSimpleQuestion("3/3^What do you want to do with Cody?", yesClick: new Button.Delegate(this.killOrResurrectCody), customYesLabel: "Resurrect", customNoLabel: "To do nothing");
+  }
+
+  private bool CheckTeleportAvailability()
+  {
+    string[] strArray = new string[22]
+    {
+      "LocationDay4Win",
+      "MoonIntro0",
+      "MoonIntro",
+      "MoonShip",
+      "Moon1",
+      "Moon2",
+      "MoonAirlock",
+      "LocationMoonbase1",
+      "LocationMoonbase2",
+      "LocationMoonbase3",
+      "LocationDreamBugs",
+      "LocationDream2",
+      "Dream3",
+      "LocationDream4",
+      "LocationBugDeath",
+      "LocationCh2Death",
+      "LocationCh3Death",
+      "LocationCh4Death",
+      "LocationDay1Win",
+      "LocationDay2Win",
+      "LocationDay3Win",
+      "LocationDay4Win"
+    };
+    bool flag = true;
+    foreach (string str in strArray)
+    {
+      if (GameDataController.gd.location == str)
+      {
+        flag = false;
+        break;
+      }
+    }
+    return flag;
+  }
+
+  public void SuitCheatCosmic()
+  {
+    GameDataController.gd.setObjective("moon_suited_up", true);
+    PlayerController.wc.suit = true;
+    this.isSuitCheatActive = true;
+  }
+
+  public void SuitCheatNormal()
+  {
+    GameDataController.gd.setObjective("moon_suited_up", false);
+    PlayerController.wc.suit = false;
+    this.isSuitCheatActive = false;
   }
 
   public delegate void Delegate();

@@ -306,7 +306,7 @@ public class InventoryController : MonoBehaviour
     }
   }
 
-  public static string getRoundedWeightLeft() => (Mathf.Round((float) ((double) InventoryController.ic.maxCapacity * 10.0 - 10.0 * (double) InventoryController.ic.getCurrentWeight())) / 10f).ToString() + string.Empty;
+  public static string getRoundedWeightLeft() => ((float) ((double) Mathf.Round((float) ((double) InventoryController.ic.maxCapacity * 10.0 - 10.0 * (double) InventoryController.ic.getCurrentWeight())) / 10.0)).ToString() + string.Empty;
 
   public bool pickUpItem(Item itemRef, bool silent = false)
   {
@@ -359,4 +359,31 @@ public class InventoryController : MonoBehaviour
   public bool isItemInInventory(string item) => ItemsManager.im.getItem(item).dataRef.droppedLocation.ToLower().IndexOf("inventory") != -1;
 
   public bool isItemInInventoryOrTrunkOrWhatever(string item) => ItemsManager.im.getItem(item).dataRef.droppedLocation.ToLower().IndexOf("inventory") != -1 || ItemsManager.im.getItem(item).dataRef.droppedLocation.ToLower().IndexOf("trunk") != -1 || ItemsManager.im.getItem(item).dataRef.droppedLocation.ToLower().IndexOf("chest") != -1;
+
+  public void dropItemExtended(Item item, string place)
+  {
+    float x = 0.0f;
+    float y = 0.0f;
+    if (place == "trunk")
+    {
+      x = 95f;
+      y = 39f;
+    }
+    else if (place == "chest")
+    {
+      x = 55f;
+      y = 39f;
+    }
+    else if (place == "inventory")
+    {
+      x = PlayerController.wc.currentXY.x;
+      y = PlayerController.wc.currentXY.y;
+    }
+    Vector2 vector2 = !(place == "inventory") ? ScreenControler.gameToScreen(new Vector2(x, y)) : ScreenControler.gameToScreen(new Vector2(x, y + (float) GroundItemController.yOffset));
+    InventoryController.ic.removeItem(item.dataRef.id);
+    Vector3 vector3 = new Vector3(vector2.x, vector2.y, 0.0f);
+    Vector3 worldPoint = Camera.main.ScreenToWorldPoint((Vector3) vector2);
+    (Object.Instantiate(Resources.Load("Prefabs/GroundItem"), worldPoint, new Quaternion()) as GameObject).GetComponent<GroundItemController>().init(ItemsManager.im.getItem(item.id));
+    ItemsManager.im.updateItem(item.id, SceneManager.GetActiveScene().name, (int) x, (int) y);
+  }
 }

@@ -4,6 +4,7 @@
 // MVID: 0AB8CA89-B4E8-42A6-A741-F039C11ACBC5
 // Assembly location: C:\Users\err00\Desktop\ИСХОДНИКИ desc 4\Материалы\Assembly-CSharp\Оригинальный\Assembly-CSharp.dll
 
+using System.Collections.Generic;
 using UnityEngine;
 
 public class QuestionController : MonoBehaviour
@@ -89,27 +90,26 @@ public class QuestionController : MonoBehaviour
         label = label + " " + (object) time + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + ".";
         if (GameDataController.gd.getObjective("dialogue_ginger_intro"))
         {
-          int num2 = timeSaver;
-          this.timeAdded -= num2;
-          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help1") + string.Empty + (object) num2 + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
+          this.timeAdded -= timeSaver;
+          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help1") + string.Empty + (object) timeSaver + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
           num1 += 0.1f;
         }
         if (GameDataController.gd.getObjective("npc2_joined") && GameDataController.gd.getObjective("npc2_alive"))
         {
-          int num3 = (int) ((double) timeSaver * 1.5);
-          this.timeAdded -= num3;
-          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help2") + string.Empty + (object) num3 + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
+          int num2 = (int) ((double) timeSaver * 1.5);
+          this.timeAdded -= num2;
+          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help2") + string.Empty + (object) num2 + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
           num1 += 0.1f;
         }
         if (GameDataController.gd.getObjective("npc3_joined") && GameDataController.gd.getObjective("npc3_alive"))
         {
-          int num4 = (int) ((double) timeSaver * 0.5);
-          this.timeAdded -= num4;
-          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help3") + string.Empty + (object) num4 + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
+          int num3 = (int) ((double) timeSaver * 0.5);
+          this.timeAdded -= num3;
+          label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_help3") + string.Empty + (object) num3 + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + string.Empty;
           num1 += 0.1f;
         }
         label = label + " ^" + GameStrings.getString(GameStrings.warnings, "time_summary") + " " + (object) this.timeAdded + " " + GameStrings.getString(GameStrings.warnings, "time_minutes") + ".";
-        float num5 = num1 + 0.1f;
+        float num4 = num1 + 0.1f;
       }
       else
       {
@@ -235,9 +235,164 @@ public class QuestionController : MonoBehaviour
       this.yes.workIfBusy = true;
       this.no.workIfBusy = true;
     }
-    if (!Input.GetKeyDown(KeyCode.Escape))
+    if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.L))
+      this.no.onClick();
+    if (!Input.GetKeyDown(KeyCode.K))
       return;
-    this.no.onClick();
+    this.yes.onClick();
+  }
+
+  public void showSimpleQuestion(
+    string label,
+    QuestionController.PopupType type = QuestionController.PopupType.QUESTION,
+    Button.Delegate yesClick = null,
+    int time = 0,
+    int timeSaver = 0,
+    Button.Delegate noClick = null,
+    string customYesLabel = null,
+    string customNoLabel = null,
+    Sprite image = null)
+  {
+    QuestionController.questionAsked = true;
+    if ((Object) this.cursorCont == (Object) null)
+      this.initCursor();
+    this.cursorCont.showCursor(CursorController.PixelCursor.NORMAL);
+    GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive = false;
+    this.antiDoubleClick = 0.6f;
+    this.questionText.viewText(label, quick: true, instant: true, mwidth: 230);
+    this.questionText.keepAlive = true;
+    float y = this.questionText.getChars()[this.questionText.getChars().Count - 1].transform.position.y;
+    switch (type)
+    {
+      case QuestionController.PopupType.QUESTION:
+        if (customYesLabel != null)
+          this.yes.initButton(customYesLabel);
+        else
+          this.yes.initButton(GameStrings.getString(GameStrings.gui, "yes").ToUpper());
+        if (customNoLabel != null)
+          this.no.initButton(customNoLabel);
+        else
+          this.no.initButton(GameStrings.getString(GameStrings.gui, "no").ToUpper());
+        this.yes.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(-0.55f, y - 0.1f, this.yes.transform.position.z));
+        this.no.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(0.55f, y - 0.1f, this.yes.transform.position.z));
+        break;
+      case QuestionController.PopupType.STATEMENT:
+        if (customYesLabel != null)
+          this.yes.initButton(customYesLabel);
+        else
+          this.yes.initButton(GameStrings.getString(GameStrings.gui, "ok").ToUpper());
+        this.yes.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(0.0f, y - 0.1f, this.yes.transform.position.z));
+        this.no.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(9999f, 9999f, this.yes.transform.position.z));
+        break;
+    }
+    this.yes.transform.parent = this.gameObject.transform;
+    this.yes.gameObject.transform.parent = this.gameObject.transform;
+    this.yes.buttonText.transform.parent = this.gameObject.transform;
+    this.yes.buttonText.container.transform.parent = this.gameObject.transform;
+    this.no.transform.parent = this.gameObject.transform;
+    this.no.gameObject.transform.parent = this.gameObject.transform;
+    this.no.buttonText.transform.parent = this.gameObject.transform;
+    this.yes.buttonText.container.transform.parent = this.gameObject.transform;
+    QuestionController.qc.gameObject.SetActive(true);
+    PlayerController.pc.setBusy(true);
+    this.yes.onClick = new Button.Delegate(this.timeAndHide);
+    this.onYesClick = yesClick;
+    if (noClick != null)
+    {
+      this.no.onClick = new Button.Delegate(this.customNo);
+      this.onNoClick = noClick;
+    }
+    else
+      this.no.onClick = new Button.Delegate(this.hideQuestion);
+    this.yes.workIfBusy = false;
+    this.no.workIfBusy = false;
+    if ((Object) image != (Object) null)
+    {
+      this.gameObject.GetComponent<SpriteRenderer>().sprite = image;
+      this.gameObject.GetComponent<SpriteRenderer>().enabled = true;
+    }
+    else
+      this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+  }
+
+  public void showCustomQuestion(
+    string label,
+    List<Button> listb,
+    List<float> xCoords,
+    List<float> yCoords)
+  {
+    QuestionController.questionAsked = true;
+    if ((Object) this.cursorCont == (Object) null)
+      this.initCursor();
+    this.cursorCont.showCursor(CursorController.PixelCursor.NORMAL);
+    GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive = false;
+    this.antiDoubleClick = 0.6f;
+    this.questionText.viewText(label, quick: true, instant: true, mwidth: 230);
+    this.questionText.keepAlive = true;
+    float y = this.questionText.getChars()[this.questionText.getChars().Count - 1].transform.position.y;
+    int index = 0;
+    foreach (Button button in listb)
+    {
+      button.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(xCoords[index], yCoords[index] + y, -5f));
+      button.transform.parent = this.gameObject.transform;
+      button.gameObject.transform.parent = this.gameObject.transform;
+      button.buttonText.transform.parent = this.gameObject.transform;
+      button.buttonText.container.transform.parent = this.gameObject.transform;
+      button.workIfBusy = false;
+      ++index;
+    }
+    QuestionController.qc.gameObject.SetActive(true);
+    PlayerController.pc.setBusy(true);
+    this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+  }
+
+  public void showCustomQuestion(
+    string label,
+    List<Button> listb,
+    List<float> xCoords,
+    List<float> yCoords,
+    List<string> buttonTexts)
+  {
+    QuestionController.questionAsked = true;
+    if ((Object) this.cursorCont == (Object) null)
+      this.initCursor();
+    this.cursorCont.showCursor(CursorController.PixelCursor.NORMAL);
+    GameObject.Find("BottomText").GetComponent<TextFieldController>().keepAlive = false;
+    this.antiDoubleClick = 0.6f;
+    this.questionText.viewText(label, quick: true, instant: true, mwidth: 230);
+    this.questionText.keepAlive = true;
+    float y = this.questionText.getChars()[this.questionText.getChars().Count - 1].transform.position.y;
+    int index = 0;
+    foreach (Button button in listb)
+    {
+      button.initButton(buttonTexts[index]);
+      button.transform.position = ScreenControler.roundToNearestFullPixel2(new Vector3(xCoords[index], yCoords[index] + y, -5f));
+      button.transform.parent = this.gameObject.transform;
+      button.gameObject.transform.parent = this.gameObject.transform;
+      button.buttonText.transform.parent = this.gameObject.transform;
+      button.buttonText.container.transform.parent = this.gameObject.transform;
+      button.workIfBusy = false;
+      ++index;
+    }
+    QuestionController.qc.gameObject.SetActive(true);
+    PlayerController.pc.setBusy(true);
+    this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+  }
+
+  public void timeAndHideCustom()
+  {
+    QuestionController.questionAsked = false;
+    QuestionController.qc.questionText.dissmiss();
+    QuestionController.qc.gameObject.SetActive(false);
+    PlayerController.pc.clickedSomething = true;
+    PlayerController.pc.setBusy(false);
+    this.gameObject.GetComponent<SpriteRenderer>().enabled = false;
+    if ((Object) this.cursorCont == (Object) null)
+      this.initCursor();
+    this.cursorCont.showCursor(CursorController.PixelCursor.NORMAL);
+    if (this.onYesClick == null)
+      return;
+    this.onYesClick();
   }
 
   public enum PopupType

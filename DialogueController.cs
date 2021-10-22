@@ -85,6 +85,12 @@ public class DialogueController : MonoBehaviour
 
   private void Update()
   {
+    if (Input.GetKeyDown(KeyCode.B) || Input.GetKeyDown(KeyCode.N) || Input.GetKeyDown(KeyCode.H))
+    {
+      Timeline.t.skipDialogue();
+      PlayerController.pc.dialogue = PlayerController.DialogueState.NONE;
+      GameObject.FindGameObjectWithTag("Cursor").GetComponent<CursorController>().clearOverride();
+    }
     if ((Object) this.bottomTextfield == (Object) null)
       this.bottomTextfield = GameObject.Find("BottomText").GetComponent<TextFieldController>();
     if (!this.hidden && (PlayerController.pc.dialogue != PlayerController.DialogueState.NONE || Timeline.t.actions != null && Timeline.t.actions.Count > 0))
